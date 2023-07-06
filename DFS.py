@@ -1,6 +1,7 @@
 import copy, os
 
 LOG = True
+MODE = {'DFS':False, 'Iterative-DFS':True}
 
 class Log:
     def __init__(self):
@@ -83,28 +84,32 @@ class Board:
 
 class DFS:
     def __init__(self):
+        global MODE
         self.log = Log()
         
-        self.Max_Level = 3
         self.dir = ['L', 'R', 'U', 'D']
         
-        self.Iterative()
+        if MODE['DFS']:
+            self.Max_Level = 900
+            self.DFS()
+        elif MODE['Iterative-DFS']:
+            self.Max_Level = 3
+            self.Iterative()
         
         print("FAILED")
     
     def Iterative(self):
         while self.Max_Level < 900:
-            self.frontier = Stack()
-            self.closed = Stack()
-            self.board = Board()
-            self.frontier.push(self.board.board)
-            
-            self.LEVEL = 0
-            
             self.Max_Level += 1
-            self.loop()
+            self.DFS()
     
-    def loop(self):
+    def DFS(self):
+        self.frontier = Stack()
+        self.closed = Stack()
+        self.board = Board()
+        self.frontier.push(self.board.board)
+        
+        self.LEVEL = 0
         while not self.frontier.isEmpty():
             self.expand()
     
