@@ -1,4 +1,19 @@
 import copy, os
+
+LOG = True
+
+class Log:
+    def __init__(self):
+        pass
+    def writeData(self, data):
+        global LOG
+        if LOG:
+            with open('Log.txt','w') as f:
+                f.write(f"{data}\n")
+    def appendData(self, data):
+        if LOG:
+            with open('Log.txt', 'a') as f:
+                f.write(f"{data}\n")
 class Stack:
     def __init__(self):
         self.stack = []
@@ -18,9 +33,10 @@ class Stack:
         return False
 class Board:
     def __init__(self):
+        self.log = Log()
         self.size = 3
         self.board = [[1,2,3], [6,5,4], [7,8,0]]
-        self.board = [[5,6,8], [0,1,2], [3,4,7]]
+        # self.board = [[1,8,2], [0,4,3], [7,6,5]]
         self.goal  = [[0,1,2], [5,4,3], [6,7,8]]
         
     def set_board(self, board):
@@ -58,24 +74,39 @@ class Board:
     
     def printBoard(self, extra=''):
         print("------------------------")
+        self.log.appendData("------------------------")
         print(f"BOARD:{extra}")
+        self.log.appendData(f"BOARD:{extra}")
         for i in range(len(self.board)):
             print(self.board[i])
+            self.log.appendData(self.board[i])
 
 class DFS:
     def __init__(self):
-        self.frontier = Stack()
-        self.closed = Stack()
-        self.board = Board()
-        self.frontier.push(self.board.board)
+        self.log = Log()
+        
+        self.Max_Level = 3
         self.dir = ['L', 'R', 'U', 'D']
         
-        self.LEVEL = 0
+        self.Iterative()
         
+        print("FAILED")
+    
+    def Iterative(self):
+        while self.Max_Level < 900:
+            self.frontier = Stack()
+            self.closed = Stack()
+            self.board = Board()
+            self.frontier.push(self.board.board)
+            
+            self.LEVEL = 0
+            
+            self.Max_Level += 1
+            self.loop()
+    
+    def loop(self):
         while not self.frontier.isEmpty():
             self.expand()
-        print("FAILED")
-        pass
     
     def expand(self):
         board_ = Board()
@@ -85,28 +116,24 @@ class DFS:
         board_.set_board(board)
         board_.printBoard()
         if board_.goal_test():
+            self.log.appendData("Success")
             print("success")
             exit()
         for i in range(4):
             result = board_.move(self.dir[i])
+            self.log.appendData(f"LEVEL:{self.LEVEL}->{i}")
             print(f"LEVEL:{self.LEVEL}->{i}")
-            if (self.LEVEL == 29 and i ==3):
-                print(result)
-                # print(self.printBoard(result))
-            if not result == False:
+            if not result == False and self.LEVEL < self.Max_Level:
                 if not self.closed.visitedNode(result) and not self.frontier.visitedNode(result):
                     self.frontier.push(result)
                     self.expand()
                     self.LEVEL -= 1
     
-    def printBoard(self, board,extra=''):
-        print("------------------------")
-        print(f"BOARD:{extra}")
-        for i in range(len(board)):
-            print(board[i])
-    
-                        
 
+                                    
+
+log = Log()
+log.writeData("START:")
 print("START:")
 
 DFS()
