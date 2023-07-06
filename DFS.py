@@ -1,9 +1,9 @@
-import copy
+import copy, os
 class Stack:
     def __init__(self):
         self.stack = []
     def push(self, data):
-        self.stack.append(data)
+        self.stack.append(copy.deepcopy(data))
     def pop(self):
         if self.isEmpty(): return False
         return self.stack.pop()
@@ -18,11 +18,13 @@ class Stack:
         return False
 class Board:
     def __init__(self):
-        self.board = [[1,2,0], [3,4,5], [6,7,8]]
-        self.goal  = [[0,1,2], [3,4,5], [6,7,8]]
+        self.size = 3
+        self.board = [[1,2,3], [6,5,4], [7,8,0]]
+        self.board = [[5,6,8], [0,1,2], [3,4,7]]
+        self.goal  = [[0,1,2], [5,4,3], [6,7,8]]
         
     def set_board(self, board):
-        self.board = board
+        self.board = copy.deepcopy(board)
         
     def goal_test(self):
         if self.board == self.goal:
@@ -32,12 +34,12 @@ class Board:
     def move(self, dir):
         temp = copy.deepcopy(self.board)
         i,j  = self.findZero()
-        if i == False and j == False:
+        if i == -1 and j == -1:
             return False
-        if dir == 'R' and j+1 < 3: temp[i][j+1] ,temp[i][j] = temp[i][j], temp[i][j+1]
+        if dir == 'R' and j+1 < self.size: temp[i][j+1] ,temp[i][j] = temp[i][j], temp[i][j+1]
         elif dir == 'L' and j-1 > -1: temp [i][j-1] ,temp[i][j] = temp[i][j], temp[i][j-1]
-        elif dir == 'U' and i+1 < 3: temp [i+1][j], temp[i][j] = temp[i][j], temp[i+1][j]
-        elif dir == 'D' and i-1 > -1: temp [i-1][j], temp[i][j] = temp[i][j], temp[i-1][j]
+        elif dir == 'D' and i+1 < self.size: temp [i+1][j], temp[i][j] = temp[i][j], temp[i+1][j]
+        elif dir == 'U' and i-1 > -1: temp [i-1][j], temp[i][j] = temp[i][j], temp[i-1][j]
         else:
             return False
         return temp
@@ -47,69 +49,64 @@ class Board:
             for j in range(len(self.board[i])):
                 if self.board[i][j] == 0:
                     return i, j
-        return False, False
+        return -1, -1
+    
     def equal(self, board):
         if self.board == board:
             return True
         return False
     
-    def printBoard(self):
-        print("BOARD:")
+    def printBoard(self, extra=''):
+        print("------------------------")
+        print(f"BOARD:{extra}")
         for i in range(len(self.board)):
             print(self.board[i])
-        print("------------------------")
 
 class DFS:
-    def SecondMethod(self):
-        Dir = ['R', 'U', 'L', 'D']
-        stack = Stack()
-        board_ = Board()
-        stack.push(board_.board)
-        temp = True
-        while not temp == False:
-            board_.printBoard()
-            temp = stack.pop()
-            board_.set_board(temp)
-            if (board_.goal_test()):
-                print("Success")
-                exit()
-            for i in range(4):
-                res = board_.move(Dir[i])
-                if not res == False:
-                    if not board_.equal(res) and not stack.visitedNode(res):
-                        stack.push(board_.board)
-                        stack.push(res)
-                        board_.set_board(res)
-        print("failed")
     def __init__(self):
-        self.stack = Stack()
+        self.frontier = Stack()
+        self.closed = Stack()
         self.board = Board()
-        self.stack.push(self.board.board)
-        self.dir = ['L', 'U', 'R', 'D']
-        self.level()
+        self.frontier.push(self.board.board)
+        self.dir = ['L', 'R', 'U', 'D']
+        
+        self.LEVEL = 0
+        
+        while not self.frontier.isEmpty():
+            self.expand()
         print("FAILED")
         pass
     
-    def level(self):
-        while not self.stack.isEmpty():
-            temp = self.stack.pop()
-            self.board.set_board(temp)
-            self.board.printBoard()
-            if (self.board.goal_test()):
-                print("SUCCESS")
-                exit()
-            for i in range(4):
-                res = self.board.move(self.dir[i])
-                if not res == False:
-                    if not self.board.equal(res) and not self.stack.visitedNode(res):
-                        self.stack.push(temp)
-                        self.stack.push(res)
-                        self.board.set_board(res)
-                        self.level()
+    def expand(self):
+        board_ = Board()
+        self.LEVEL+=1
+        board = self.frontier.pop()
+        self.closed.push(board)
+        board_.set_board(board)
+        board_.printBoard()
+        if board_.goal_test():
+            print("success")
+            exit()
+        for i in range(4):
+            result = board_.move(self.dir[i])
+            print(f"LEVEL:{self.LEVEL}->{i}")
+            if (self.LEVEL == 29 and i ==3):
+                print(result)
+                # print(self.printBoard(result))
+            if not result == False:
+                if not self.closed.visitedNode(result) and not self.frontier.visitedNode(result):
+                    self.frontier.push(result)
+                    self.expand()
+                    self.LEVEL -= 1
+    
+    def printBoard(self, board,extra=''):
+        print("------------------------")
+        print(f"BOARD:{extra}")
+        for i in range(len(board)):
+            print(board[i])
     
                         
-    
-
 
 print("START:")
+
 DFS()
